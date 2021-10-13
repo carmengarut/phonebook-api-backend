@@ -46,6 +46,7 @@ app.get('/persons/:id', (request, response) => {
 
 app.post('/persons', (request, response) => {
   const person = request.body
+
   if (!person || !person.name) {
     return response.status(400).json({
        error: 'name is missing'
@@ -56,23 +57,26 @@ app.post('/persons', (request, response) => {
    })
   }
 
-  const ids = persons.map(person => person.id)
-  const maxId = persons.length === 0 ? 0 : Math.max(...ids)
-  const newPerson = {
-    name: person.name,
-    number: person.number,
-    id: maxId + 1
-  }
-  persons= [ ...persons,newPerson]
+    const newPerson = new Person({
+        name: person.name,
+        number: person.number
+    })
 
-  response.status(201).json(newPerson)
+    newPerson.save().then(savedPerson => {
+        response.json(savedPerson)
+    })
+
+    response.status(201).json(newPerson)
 
 })
 
 app.delete('/persons/:id', (request, response) => {
-  const id = Number(request.params.id)
-  persons = persons.filter(person => person.id !== id)
-  response.status(204).end()
+  const {id} = request.params
+    Person.findByIdAndDelete(id)
+        .then(result => {
+            response.status(204).end() 
+        })
+        .catch(error => next(error)) 
 })
 
 app.put('/persons/:id', (request, response) => {
