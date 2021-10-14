@@ -6,8 +6,9 @@ const { response } = require('express');
 const express = require('express');
 const app = express();
 const morgan = require('morgan')
-
 const Person = require('./models/Person')
+const notFound = require('./middleware/notFound')
+const handleErrors = require('./middleware/handleErrors')
 
 morgan.token('body', req => {
   return JSON.stringify(req.body)
@@ -30,7 +31,7 @@ app.get('/persons', (request, response) => {
   })
 })
 
-app.get('/persons/:id', (request, response) => {
+app.get('/persons/:id', (request, response, next) => {
   const id = request.params.id
   Person.findById(id).then(person =>{
     if (person) {
@@ -70,7 +71,7 @@ app.post('/persons', (request, response) => {
 
 })
 
-app.delete('/persons/:id', (request, response) => {
+app.delete('/persons/:id', (request, response, next) => {
   const {id} = request.params
     Person.findByIdAndDelete(id)
         .then(result => {
@@ -85,6 +86,10 @@ app.put('/persons/:id', (request, response) => {
   persons = persons.map(person => person.id !== id ? person : updatedPerson)
   response.status(200).end()
 })
+
+app.use(notFound)
+
+app.use(handleErrors)
 
 const PORT = process.env.PORT 
 app.listen(PORT, () => {
