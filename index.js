@@ -80,11 +80,14 @@ app.delete('/persons/:id', (request, response, next) => {
         .catch(error => next(error)) 
 })
 
-app.put('/persons/:id', (request, response) => {
-  const id = Number(request.params.id)
+app.put('/persons/:id', (request, response, next) => {
+  const {id} = request.params
   const updatedPerson = request.body
-  persons = persons.map(person => person.id !== id ? person : updatedPerson)
-  response.status(200).end()
+  Person.findByIdAndUpdate(id, updatedPerson, { new: true })
+    .then(result => {
+      response.json(result)
+    })
+    .catch(error => next(error))
 })
 
 app.use(notFound)
